@@ -19,6 +19,7 @@
         }
     },
     "require-dev": {
+        "orchestra/testbench": "^11.1",
         "pestphp/pest": "^4.7"
     },
     "config": {
