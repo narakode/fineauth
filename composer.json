@@ -27,5 +27,12 @@
             "pestphp/pest-plugin": true
         },
         "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Narakode\\FineAuth\\FineAuthServiceProvider"
+            ]
+        }
     }
 }
