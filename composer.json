@@ -8,5 +8,23 @@
             "email": "ibrahimalanshor6@gmail.com"
         }
     ],
-    "require": {}
+    "autoload": {
+        "psr-4": {
+            "Narakode\\FineAuth\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "pestphp/pest": "^4.7"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    }
 }
