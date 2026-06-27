@@ -28,35 +28,51 @@ test('login returns 401 error when email not found', function () {
         ]);
 });
 
-test('login returns access token when attempt success', function () {
-    $credentials = [
-        'email' => 'test@example.com',
-        'password' => 'dcG&494hj.6k'
-    ];
+describe('when login attempt success', function () {
+    test('returns access token', function () {
+        $credentials = [
+            'email' => 'test@example.com',
+            'password' => 'dcG&494hj.6k'
+        ];
 
-    $response = $this->withHeaders(['accept' => 'application/json'])
-        ->post('/login', $credentials);
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', $credentials);
 
-    $response->assertStatus(200)
-        ->assertJson(function (AssertableJson $json) {
-            $json->has('access_token')->etc();
-        });
-});
+        $response->assertStatus(200)
+            ->assertJson(function (AssertableJson $json) {
+                $json->has('access_token')->etc();
+            });
+    });
 
-test('login returns user object when attempt success', function () {
-    $credentials = [
-        'email' => 'test@example.com',
-        'password' => 'dcG&494hj.6k'
-    ];
+    test('returns user object', function () {
+        $credentials = [
+            'email' => 'test@example.com',
+            'password' => 'dcG&494hj.6k'
+        ];
 
-    $user = User::first();
+        $user = User::first();
 
-    $response = $this->withHeaders(['accept' => 'application/json'])
-        ->post('/login', $credentials);
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', $credentials);
 
-    $response->assertStatus(200)
-        ->assertJson([
-            'user' => $user->toArray()
-        ])
-        ->assertJsonMissingPaths(['user.password']);
+        $response->assertStatus(200)
+            ->assertJson([
+                'user' => $user->toArray()
+            ])
+            ->assertJsonMissingPaths(['user.password']);
+    });
+
+    test('creates refresh token', function () {
+        $credentials = [
+            'email' => 'test@example.com',
+            'password' => 'dcG&494hj.6k'
+        ];
+
+        $user = User::first();
+
+        $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', $credentials);
+
+        $this->assertEquals($user->refreshTokens()->count(), 1);
+    });
 });

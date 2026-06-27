@@ -29,6 +29,9 @@ abstract class TestCase extends BaseTestCase
 
     protected function defineDatabaseMigrations()
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../vendor/laravel/sanctum/database/migrations');
+        $this->loadMigrationsFrom([
+            __DIR__ . '/../vendor/laravel/sanctum/database/migrations',
+            __DIR__ . '/../src/migrations'
+        ]);
     }
 }

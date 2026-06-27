@@ -4,6 +4,7 @@ namespace Narakode\FineAuth\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
@@ -29,6 +30,11 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+
+        $user->refreshTokens()->delete();
+        $user->refreshTokens()->create([
+            'token' => Str::random()
+        ]);
 
         return [
             'access_token' => $user->createToken('api')->plainTextToken,
