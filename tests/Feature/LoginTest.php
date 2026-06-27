@@ -1,10 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
-use Laravel\Sanctum\NewAccessToken;
-use Laravel\Sanctum\PersonalAccessToken;
 use Workbench\App\Models\User;
 
 test('login returns 422 error when credentials empty', function () {
@@ -23,10 +19,6 @@ test('login returns 401 error when email not found', function () {
         'password' => '3r}!<-F71Gy|'
     ];
 
-    Auth::expects('attempt')
-        ->with($credentials)
-        ->andReturn(false);
-
     $response = $this->withHeaders(['accept' => 'application/json'])
         ->post('/login', $credentials);
 
@@ -42,46 +34,22 @@ test('login returns access token when attempt success', function () {
         'password' => 'dcG&494hj.6k'
     ];
 
-    $user = Mockery::mock(new User)->makePartial();
-
-    Auth::expects('attempt')
-        ->with($credentials)
-        ->andReturn(true);
-    Auth::expects('user')
-        ->andReturn($user);
-
-    $fakeToken = Str::random();
-
-    $user->shouldReceive('createToken')
-        ->with('api')
-        ->andReturn(new NewAccessToken(new PersonalAccessToken(), $fakeToken));
-
     $response = $this->withHeaders(['accept' => 'application/json'])
         ->post('/login', $credentials);
 
     $response->assertStatus(200)
-        ->assertJson([
-            'access_token' => $fakeToken
-        ]);
+        ->assertJson(function (AssertableJson $json) {
+            $json->has('access_token')->etc();
+        });
 });
 
-test('login returns user object', function () {
+test('login returns user object when attempt success', function () {
     $credentials = [
         'email' => 'test@example.com',
         'password' => 'dcG&494hj.6k'
     ];
 
-    $user = Mockery::mock(new User(['email' => 'test@gmail.com', 'name' => 'test', 'password' => 'password']))->makePartial();
-
-    Auth::expects('attempt')
-        ->with($credentials)
-        ->andReturn(true);
-    Auth::expects('user')
-        ->andReturn($user);
-
-    $user->shouldReceive('createToken')
-        ->with('api')
-        ->andReturn(new NewAccessToken(new PersonalAccessToken(), Str::random()));
+    $user = User::first();
 
     $response = $this->withHeaders(['accept' => 'application/json'])
         ->post('/login', $credentials);

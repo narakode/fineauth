@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         UserFactory::new()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'password' => 'dcG&494hj.6k'
         ]);
     }
 }
