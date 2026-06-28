@@ -8,6 +8,6 @@ trait HasRefreshTokens
 {
     public function refreshTokens()
     {
-        return $this->hasOne(RefreshToken::class);
+        return $this->hasMany(RefreshToken::class);
     }
 }

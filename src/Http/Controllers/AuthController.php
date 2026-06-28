@@ -31,14 +31,21 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
+        $refreshToken = Str::random();
+
         $user->refreshTokens()->delete();
         $user->refreshTokens()->create([
-            'token' => Str::random()
+            'token' => $refreshToken
         ]);
 
-        return [
-            'access_token' => $user->createToken('api')->plainTextToken,
-            'user' => $user
-        ];
+        return response()
+            ->json([
+                'access_token' => $user->createToken('api')->plainTextToken,
+                'user' => $user
+            ])
+            ->withCookie(cookie(
+                name: 'refresh_token',
+                value: $refreshToken
+            ));
     }
 }

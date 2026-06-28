@@ -71,8 +71,26 @@ describe('when login attempt success', function () {
         $user = User::first();
 
         $this->withHeaders(['accept' => 'application/json'])
-            ->post('/login', $credentials);
+            ->post('/login', $credentials)
+            ->assertStatus(200);
 
         $this->assertEquals($user->refreshTokens()->count(), 1);
+    });
+
+    test('set cookes for refresh token', function () {
+        $credentials = [
+            'email' => 'test@example.com',
+            'password' => 'dcG&494hj.6k'
+        ];
+
+        $user = User::first();
+
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', $credentials)
+            ->assertStatus(200);
+
+        $refreshToken = $user->refreshTokens()->first()->token;
+
+        $response->assertPlainCookie('refresh_token', $refreshToken);
     });
 });
