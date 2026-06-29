@@ -49,7 +49,12 @@ class AuthController extends Controller
             ->withCookie(cookie(
                 name: 'refresh_token',
                 value: $refreshToken,
-                minutes: now()->diffInMinutes($expireAt)
+                minutes: now()->diffInMinutes($expireAt),
+                path: '/',
+                domain: null,
+                secure: true,
+                httpOnly: true,
+                sameSite: 'Strict'
             ));
     }
 }

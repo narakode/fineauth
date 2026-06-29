@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Testing\Fluent\AssertableJson;
+use Symfony\Component\HttpFoundation\Cookie;
 use Workbench\App\Models\User;
 
 test('login returns 422 error when credentials empty', function () {
@@ -119,5 +120,27 @@ describe('when login attempt success', function () {
 
             $this->assertEquals($refreshTokenCookie->getExpiresTime(), $refreshTokenExpire->timestamp);
         });
+    });
+
+    test('refresh token cookie has secure configuration', function () {
+        $credentials = [
+            'email' => 'test@example.com',
+            'password' => 'dcG&494hj.6k'
+        ];
+
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', $credentials)
+            ->assertStatus(200);
+
+        $refreshTokenCookie = collect($response->headers->getCookies())
+            ->first(function ($cookie) {
+                return $cookie->getName() === 'refresh_token';
+            });
+
+        $this->assertTrue($refreshTokenCookie->isSecure());
+        $this->assertTrue($refreshTokenCookie->isHttpOnly());
+        $this->assertEquals($refreshTokenCookie->getPath(), '/');
+        $this->assertNull($refreshTokenCookie->getDomain());
+        $this->assertEquals($refreshTokenCookie->getSameSite(), Cookie::SAMESITE_STRICT);
     });
 });
