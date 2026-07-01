@@ -4,6 +4,7 @@ namespace Narakode\FineAuth\Tests;
 
 use Illuminate\Foundation\Testing\Attributes\Seeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Narakode\FineAuth\FineAuth;
 use Narakode\FineAuth\FineAuthServiceProvider;
 use Orchestra\Testbench\Attributes\WithMigration;
 use Orchestra\Testbench\TestCase as BaseTestCase;
@@ -33,5 +34,10 @@ abstract class TestCase extends BaseTestCase
             __DIR__ . '/../vendor/laravel/sanctum/database/migrations',
             __DIR__ . '/../database/migrations'
         ]);
+    }
+
+    protected function defineRoutes($router)
+    {
+        FineAuth::routes();
     }
 }
