@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
-class AuthController extends Controller
+class AuthController
 {
     public function login(Request $request)
     {
