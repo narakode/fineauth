@@ -23,6 +23,12 @@ Install the package:
 composer require narakode/fineauth
 ```
 
+Publish the package configuration:
+
+```bash
+php artisan vendor:publish --provider="Narakode\FineAuth\FineAuthServiceProvider"
+```
+
 This package requires Laravel Sanctum. If you haven't installed it yet, run:
 
 ```bash
