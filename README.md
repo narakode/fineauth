@@ -35,6 +35,19 @@ This package requires Laravel Sanctum. If you haven't installed it yet, run:
 php artisan install:api
 ```
 
+Add the `HasApiTokens` and `HasRefreshTokens` traits to your `User` model.
+
+```php
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
+use Narakode\FineAuth\HasRefreshTokens;
+
+class User extends Authenticatable
+{
+    use HasApiTokens, HasRefreshTokens;
+}
+```
+
 ## Usage
 
 Register the authentication routes in your routes file (for example, `routes/api.php`):
