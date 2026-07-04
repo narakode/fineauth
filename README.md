@@ -105,3 +105,45 @@ A refresh token is also returned as an HTTP cookie named `refresh_token` with th
 * `HttpOnly`
 * `Secure`
 * `SameSite`
+
+### Current User
+
+The `GET /me` endpoint returns the authenticated user associated with the provided access token.
+
+Provide the access token in the `Authorization` header using the following format:
+
+```
+Authorization: Bearer <access_token>
+```
+
+If the access token is valid, the response will be:
+
+```json
+{
+    "user": {
+        "id": "xxx",
+        "name": "xxx",
+        "email": "xxx"
+    }
+}
+```
+
+If the access token is missing or invalid, the endpoint returns a `401 Unauthorized` response.
+
+### Get Current User
+
+The `GET /me` endpoint returns the authenticated user associated with the provided access token.
+
+If the access token is valid, the response will be:
+
+```json
+{
+    "user": {
+        "id": "xxx",
+        "name": "xxx",
+        "email": "xxx"
+    }
+}
+```
+
+If the access token is missing or invalid, the endpoint returns a `401 Unauthorized` response.
