@@ -4,6 +4,7 @@ namespace Narakode\FineAuth\Tests;
 
 use Illuminate\Foundation\Testing\Attributes\Seeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\SanctumServiceProvider;
 use Narakode\FineAuth\FineAuth;
 use Narakode\FineAuth\FineAuthServiceProvider;
 use Orchestra\Testbench\Attributes\WithMigration;
@@ -20,6 +21,7 @@ abstract class TestCase extends BaseTestCase
     {
         return [
             FineAuthServiceProvider::class,
+            SanctumServiceProvider::class
         ];
     }
 

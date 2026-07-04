@@ -57,4 +57,11 @@ class AuthController
                 sameSite: 'Strict'
             ));
     }
+
+    public function me(Request $request)
+    {
+        return [
+            'user' => $request->user()
+        ];
+    }
 }
