@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Narakode\FineAuth\FineAuth;
+use Narakode\FineAuth\Models\RefreshToken;
 
 class AuthController
 {
@@ -23,33 +25,18 @@ class AuthController
             ]
         ]);
 
-        if (!Auth::attempt($credentials)) {
-            return response()->json([
-                'message' => 'The provided credentials do not match our records.'
-            ], 401);
-        }
+        abort_if(!Auth::attempt($credentials), 401, 'The provided credentials do not match our records.');
 
         $user = Auth::user();
 
-        $refreshToken = Str::random();
-
-        $expireAt = now()->addHour();
-
-        $user->refreshTokens()->delete();
-        $user->refreshTokens()->create([
-            'token' => $refreshToken,
-            'expire_at' => $expireAt
-        ]);
+        $refreshToken = $user->createRefreshToken();
 
         return response()
-            ->json([
-                'access_token' => $user->createToken('api')->plainTextToken,
-                'user' => $user
-            ])
+            ->json(FineAuth::createAuthResult($user))
             ->withCookie(cookie(
                 name: 'refresh_token',
-                value: $refreshToken,
-                minutes: now()->diffInMinutes($expireAt),
+                value: $refreshToken->token,
+                minutes: now()->diffInMinutes($refreshToken->expire_at),
                 path: '/',
                 domain: null,
                 secure: true,
@@ -63,5 +50,20 @@ class AuthController
         return [
             'user' => $request->user()
         ];
+    }
+
+    public function refreshToken(Request $request)
+    {
+        $rawToken = $request->cookie('refresh_token');
+
+        abort_if(!$rawToken, 401, 'Unauthenticated.');
+
+        $refreshToken = RefreshToken::with('user')
+            ->firstWhere('token', $rawToken);
+
+        abort_if(!$refreshToken, 401, 'Unauthenticated.');
+        abort_if($refreshToken->expire_at->lessThan(now()), 401, 'Unauthenticated.');
+
+        return response()->json(FineAuth::createAuthResult($refreshToken->user));
     }
 }

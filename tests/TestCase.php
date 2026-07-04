@@ -28,6 +28,7 @@ abstract class TestCase extends BaseTestCase
     protected function defineEnvironment($app)
     {
         $app['config']->set('auth.providers.users.model', \Workbench\App\Models\User::class);
+        $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
     }
 
     protected function defineDatabaseMigrations()
