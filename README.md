@@ -147,3 +147,9 @@ If the access token is valid, the response will be:
 ```
 
 If the access token is missing or invalid, the endpoint returns a `401 Unauthorized` response.
+
+### Refresh Token
+
+The `POST /refresh-token` endpoint returns a new access token and the authenticated user using the refresh token stored in a cookie.
+
+If the cookie is exists and has not expired, the response is the same as login. Otherwise, the endpoint returns `401 Unauthorized`.
