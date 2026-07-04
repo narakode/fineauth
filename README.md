@@ -130,24 +130,6 @@ If the access token is valid, the response will be:
 
 If the access token is missing or invalid, the endpoint returns a `401 Unauthorized` response.
 
-### Get Current User
-
-The `GET /me` endpoint returns the authenticated user associated with the provided access token.
-
-If the access token is valid, the response will be:
-
-```json
-{
-    "user": {
-        "id": "xxx",
-        "name": "xxx",
-        "email": "xxx"
-    }
-}
-```
-
-If the access token is missing or invalid, the endpoint returns a `401 Unauthorized` response.
-
 ### Refresh Token
 
 The `POST /refresh-token` endpoint returns a new access token and the authenticated user using the refresh token stored in a cookie.
