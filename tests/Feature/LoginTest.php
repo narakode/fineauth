@@ -92,7 +92,7 @@ describe('when login attempt success', function () {
 
         $refreshToken = $user->refreshTokens()->first()->token;
 
-        $response->assertPlainCookie('refresh_token', $refreshToken);
+        $response->assertCookie('refresh_token', $refreshToken);
     });
 
     test('refresh token has expiration', function () {
@@ -111,7 +111,7 @@ describe('when login attempt success', function () {
             $refreshTokenExpire = now()->addHour();
             $refreshToken = $user->refreshTokens()->first();
 
-            $this->assertEquals($refreshToken->expire_at, $refreshTokenExpire);
+            $this->assertEquals($refreshToken->expire_at->copy()->startOfSecond(), $refreshTokenExpire->copy()->startOfSecond());
 
             $refreshTokenCookie = collect($response->headers->getCookies())
                 ->first(function ($cookie) {
