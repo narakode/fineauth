@@ -1,16 +1,15 @@
 <?php
 
-namespace Narakode\FineAuth\Http\Controllers;
+namespace Narakode\FineAuth\Auth;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
-use Narakode\FineAuth\FineAuth;
-use Narakode\FineAuth\Models\RefreshToken;
+use Narakode\FineAuth\RefreshToken\RefreshToken;
 
 class AuthController
 {
-    public function login(Request $request)
+    public function login(Request $request, AuthService $authService, AuthResponse $authResponse)
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -31,7 +30,7 @@ class AuthController
         $refreshToken = $user->createRefreshToken();
 
         return response()
-            ->json(FineAuth::createAuthResult($user))
+            ->json($authResponse->toArray($authService->authenticate($user)))
             ->withCookie(cookie(
                 name: 'refresh_token',
                 value: $refreshToken->token,
@@ -51,7 +50,7 @@ class AuthController
         ];
     }
 
-    public function refreshToken(Request $request)
+    public function refreshToken(Request $request, AuthService $authService, AuthResponse $authResponse)
     {
         $rawToken = $request->cookie('refresh_token');
 
@@ -63,6 +62,6 @@ class AuthController
         abort_if(!$refreshToken, 401, 'Unauthenticated.');
         abort_if($refreshToken->expire_at->lessThan(now()), 401, 'Unauthenticated.');
 
-        return response()->json(FineAuth::createAuthResult($refreshToken->user));
+        return response()->json($authResponse->toArray($authService->authenticate($refreshToken->user)));
     }
 }

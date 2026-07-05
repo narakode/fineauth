@@ -1,9 +1,8 @@
 <?php
 
-namespace Narakode\FineAuth;
+namespace Narakode\FineAuth\RefreshToken;
 
 use Illuminate\Support\Str;
-use Narakode\FineAuth\Models\RefreshToken;
 
 trait HasRefreshTokens
 {

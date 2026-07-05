@@ -1,6 +1,6 @@
 <?php
 
-namespace Narakode\FineAuth\Models;
+namespace Narakode\FineAuth\RefreshToken;
 
 use Illuminate\Database\Eloquent\Model;
 

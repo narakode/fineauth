@@ -2,7 +2,7 @@
 
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Support\Facades\Route;
-use Narakode\FineAuth\Http\Controllers\AuthController;
+use Narakode\FineAuth\Auth\AuthController;
 
 Route::middleware(EncryptCookies::class)
     ->group(function () {
