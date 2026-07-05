@@ -56,6 +56,13 @@ Register the authentication routes in your routes file (for example, `routes/api
 use Narakode\FineAuth\FineAuth;
 
 FineAuth::routes();
+
+# Custom attributes
+
+FineAuth::routes([
+    'as' => 'test.',
+    'prefix' => 'test/'
+]);
 ```
 
 You can verify that the routes have been registered by listing your application's routes:

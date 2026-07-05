@@ -4,7 +4,6 @@ namespace Narakode\FineAuth\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Narakode\FineAuth\FineAuth;
 use Narakode\FineAuth\Models\RefreshToken;

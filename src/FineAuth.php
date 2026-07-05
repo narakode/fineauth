@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Route;
 class FineAuth
 {
 
-    public static function routes()
+    public static function routes(array $attributes = [])
     {
-        Route::group([], function () {
+        Route::group($attributes, function () {
             require __DIR__ . '/../routes/api.php';
         });
     }
