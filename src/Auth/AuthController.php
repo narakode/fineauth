@@ -3,59 +3,40 @@
 namespace Narakode\FineAuth\Auth;
 
 use Illuminate\Http\Request;
-use Narakode\FineAuth\RefreshToken\RefreshToken;
+use Narakode\FineAuth\Auth\Exceptions\LoginException;
+use Narakode\FineAuth\Auth\Exceptions\RefreshTokenException;
 
 class AuthController
 {
-    public function login(
-        Request $request,
-        AuthCredentials $authCredentials,
-        Authenticator $authenticator,
-        AuthService $authService,
-        AuthResponse $authResponse
-    )
+    public function login(Request $request, AuthCredentials $authCredentials, AuthService $authService)
     {
         $credentials = $request->validate($authCredentials->rules());
 
-        $user = $authenticator->attempt($credentials);
-
-        abort_if(!$user, 401, 'The provided credentials do not match our records.');
-
-        $refreshToken = $user->createRefreshToken();
-
-        return response()
-            ->json($authResponse->toArray($authService->authenticate($user)))
-            ->withCookie(cookie(
-                name: 'refresh_token',
-                value: $refreshToken->token,
-                minutes: now()->diffInMinutes($refreshToken->expire_at),
-                path: '/',
-                domain: null,
-                secure: true,
-                httpOnly: true,
-                sameSite: 'Strict'
-            ));
+        try {
+            return response()
+                ->json($authService->login($credentials));
+        } catch (LoginException $e) {
+            return response()
+                ->json(['message' => $e->getMessage()], 401);
+        }
     }
 
-    public function me(Request $request)
+    public function me(Request $request, AuthResult $authResult)
     {
-        return [
-            'user' => $request->user()
-        ];
+        return $authResult->generateCurrentUserResult($request->user());
     }
 
-    public function refreshToken(Request $request, AuthService $authService, AuthResponse $authResponse)
+    public function refreshToken(Request $request, AuthService $authService)
     {
         $rawToken = $request->cookie('refresh_token');
 
         abort_if(!$rawToken, 401, 'Unauthenticated.');
 
-        $refreshToken = RefreshToken::with('user')
-            ->firstWhere('token', $rawToken);
-
-        abort_if(!$refreshToken, 401, 'Unauthenticated.');
-        abort_if($refreshToken->expire_at->lessThan(now()), 401, 'Unauthenticated.');
-
-        return response()->json($authResponse->toArray($authService->authenticate($refreshToken->user)));
+        try {
+            return response()->json($authService->refreshToken($rawToken));
+        } catch (RefreshTokenException $e) {
+            return response()
+                ->json(['message' => 'Unauthenticated.'], 401);
+        }
     }
 }

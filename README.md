@@ -72,6 +72,8 @@ php artisan route:list
 
 # Example:
 # POST  api/login
+# POST  api/refresh-token
+# GET  api/me
 ```
 
 ## Endpoints
@@ -256,57 +258,56 @@ class AppServiceProvider extends ServiceProvider
 }
 ```
 
+### Adding Meta
 
-### Custom Auth Response
+You can add a `meta` object to the response for the `login`, `refresh`, and `me` endpoints by creating a class that implements the `Narakode\FineAuth\Auth\AuthMeta` interface.
 
-You can customize the auth response (when login and refresh token are successful) by creating a class that implements the `Narakode\FineAuth\Auth\AuthResponse` interface.
+The class should define a `toArray` method that accepts a `Narakode\FineAuth\Auth\AuthContext` object as its parameter.
 
-The class should have a `toArray` method with a `Narakode\FineAuth\Auth\AuthResult` object as its parameter.
+The `toArray` method should return an array that will be included as the `meta` field in the JSON response.
 
-The `toArray` method should return an array that will be sent as the JSON response.
+The `AuthContext` object exposes the `getUser` method, which returns the authenticated `User` object.
 
-The `AuthResult` object exposes the `getUser` method to access the authenticated `User` object and the `getAccessToken` method to access the user's access token.
-
-For example, create `App\Auth\AuthResponse.php`.
+For example, create `App\Auth\AuthMeta.php`.
 
 ```php
 <?php
 
 namespace App\Auth;
 
-use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
-use Narakode\FineAuth\Auth\AuthResult;
+use Narakode\FineAuth\Auth\AuthContext;
+use Narakode\FineAuth\Auth\AuthMeta as AuthMetaContract;
 
-class AuthResponse implements AuthResponseContract
+class AuthMeta implements AuthMetaContract
 {
-    public function toArray(AuthResult $auth): array
+    public function toArray(AuthContext $auth): array
     {
+        $user = $auth->getUser();
+
         return [
-            'user' => $auth->getUser(),
-            'access_token' => $auth->getAccessToken(),
-            'roles' => [],
-            'permissions' => []
+            'roles' => $user->roles,
+            'permissions' => $user->permissions,
         ];
     }
 }
 ```
 
-Then, register the `AuthResponse` in the app service provider (`App\Providers\AppServiceProvider.php`).
+Then, register the `AuthMeta` in your application service provider (`App\Providers\AppServiceProvider.php`).
 
 ```php
 <?php
 
 namespace App\Providers;
 
+use App\Auth\AuthMeta;
 use Illuminate\Support\ServiceProvider;
-use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
-use App\Auth\AuthResponse;
+use Narakode\FineAuth\Auth\AuthMeta as AuthMetaContract;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->singleton(AuthResponseContract::class, AuthResponse::class);
+        $this->app->singleton(AuthMetaContract::class, AuthMeta::class);
     }
 }
 ```

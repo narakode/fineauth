@@ -1,5 +1,7 @@
 <?php
 
+use Narakode\FineAuth\Auth\AuthContext;
+use Narakode\FineAuth\Auth\AuthMeta;
 use Workbench\App\Models\User;
 
 test('returns unauthorized when access token is empty', function () {
@@ -22,17 +24,49 @@ test('returns unauthorized when access token is invalid', function () {
         ]);
 });
 
-test('returns current user when access token valid', function () {
-    $user = User::first();
+describe('when access token valid', function () {
+    test('returns current user', function () {
+        $user = User::first();
 
-    $token = $user->createToken('api')->plainTextToken;
+        $token = $user->createToken('api')->plainTextToken;
 
-    $response = $this->withHeaders(['accept' => 'application/json', 'authorization' => 'Bearer ' . $token])
-        ->get('/me');
+        $response = $this->withHeaders(['accept' => 'application/json', 'authorization' => 'Bearer ' . $token])
+            ->get('/me');
 
-    $response->assertStatus(200)
-        ->assertJson([
-            'user' => $user->toArray()
-        ])
-        ->assertJsonMissingPaths(['user.password']);
+        $response->assertStatus(200)
+            ->assertJson([
+                'user' => $user->toArray()
+            ])
+            ->assertJsonMissingPaths(['user.password']);
+    });
+
+    test('returns custom meta', function () {
+        class CustomMeMeta implements AuthMeta
+        {
+            public function toArray(AuthContext $auth): array
+            {
+                return [
+                    'test' => 'test'
+                ];
+            }
+        } 
+
+        $this->app->singleton(AuthMeta::class, CustomMeMeta::class);
+        
+        $user = User::first();
+
+        $token = $user->createToken('api')->plainTextToken;
+
+        $response = $this->withHeaders(['accept' => 'application/json', 'authorization' => 'Bearer ' . $token])
+            ->get('/me');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'user' => $user->toArray(),
+                'meta' => [
+                    'test' => 'test'
+                ]
+            ])
+            ->assertJsonMissingPaths(['user.password']);
+    });
 });

@@ -1,10 +1,10 @@
 <?php
 
 use Illuminate\Testing\Fluent\AssertableJson;
+use Narakode\FineAuth\Auth\AuthContext;
 use Narakode\FineAuth\Auth\AuthCredentials;
 use Narakode\FineAuth\Auth\Authenticator;
-use Narakode\FineAuth\Auth\AuthResponse;
-use Narakode\FineAuth\Auth\AuthResult;
+use Narakode\FineAuth\Auth\AuthMeta;
 use Symfony\Component\HttpFoundation\Cookie;
 use Workbench\App\Models\User;
 
@@ -222,13 +222,13 @@ describe('when login attempt success', function () {
         $this->assertTrue($refreshTokenCookie->isHttpOnly());
         $this->assertEquals($refreshTokenCookie->getPath(), '/');
         $this->assertNull($refreshTokenCookie->getDomain());
-        $this->assertEquals($refreshTokenCookie->getSameSite(), Cookie::SAMESITE_STRICT);
+        $this->assertEquals($refreshTokenCookie->getSameSite(), Cookie::SAMESITE_LAX);
     });
 
-    test('custom auth response', function () {
-        class CustomAuthResponse implements AuthResponse
+    test('has custom meta properties', function () {
+        class CustomLoginMeta implements AuthMeta
         {
-            public function toArray(AuthResult $auth): array
+            public function toArray(AuthContext $auth): array
             {
                 return [
                     'test' => 'test'
@@ -236,7 +236,7 @@ describe('when login attempt success', function () {
             }
         } 
 
-        $this->app->singleton(AuthResponse::class, CustomAuthResponse::class);
+        $this->app->singleton(AuthMeta::class, CustomLoginMeta::class);
 
         $credentials = [
             'email' => 'test@example.com',
@@ -248,7 +248,9 @@ describe('when login attempt success', function () {
 
         $response->assertStatus(200)
             ->assertJson([
-                'test' => 'test'
+                'meta' => [
+                    'test' => 'test'
+                ]
             ]);
     });
 });

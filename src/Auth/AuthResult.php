@@ -6,15 +6,26 @@ use Illuminate\Foundation\Auth\User;
 
 class AuthResult
 {
-    public function __construct(private User $user, private string $accessToken) {}
-
-    public function getUser(): User
+    public function generateAuthResult(User $user): array
     {
-        return $this->user;
+        $accessToken = $this->createAccessToken($user);
+
+        return [
+            'access_token' => $accessToken,
+            ...$this->generateCurrentUserResult($user)
+        ];
     }
 
-    public function getAccessToken(): string
+    public function generateCurrentUserResult(User $user): array
     {
-        return $this->accessToken;
+        return [
+            'user' => $user,
+            'meta' => app(AuthMeta::class)->toArray(new AuthContext($user))
+        ];
+    }
+
+    private function createAccessToken(User $user): string
+    {
+        return $user->createToken('api')->plainTextToken;
     }
 }

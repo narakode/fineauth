@@ -1,10 +1,11 @@
 <?php
 
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Support\Facades\Route;
 use Narakode\FineAuth\Auth\AuthController;
 
-Route::middleware(EncryptCookies::class)
+Route::middleware([EncryptCookies::class, AddQueuedCookiesToResponse::class])
     ->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
         Route::get('/me', [AuthController::class, 'me'])
