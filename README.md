@@ -142,3 +142,57 @@ If the access token is missing or invalid, the endpoint returns a `401 Unauthori
 The `POST /refresh-token` endpoint returns a new access token and the authenticated user using the refresh token stored in a cookie.
 
 If the cookie is exists and has not expired, the response is the same as login. Otherwise, the endpoint returns `401 Unauthorized`.
+
+## Custom Auth Response
+
+You can customize the auth response (when login and refresh token are successful) by creating a class that implements the `Narakode\FineAuth\Auth\AuthResponse` interface.
+
+The class should have a `toArray` method with a `Narakode\FineAuth\Auth\AuthResult` object as its parameter.
+
+The `toArray` method should return an array that will be sent as the JSON response.
+
+The `AuthResult` object exposes the `getUser` method to access the authenticated `User` object and the `getAccessToken` method to access the user's access token.
+
+For example, create `App\Responses\AuthResponse.php`.
+
+```php
+<?php
+
+namespace App\Responses;
+
+use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
+use Narakode\FineAuth\Auth\AuthResult;
+
+class AuthResponse implements AuthResponseContract
+{
+    public function toArray(AuthResult $auth): array
+    {
+        return [
+            'user' => $auth->getUser(),
+            'access_token' => $auth->getAccessToken(),
+            'roles' => [],
+            'permissions' => []
+        ];
+    }
+}
+```
+
+Then, register the `AuthResponse` in the app service provider (`App\Providers\AppServiceProvider.php`).
+
+```php
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
+use App\Responses\AuthResponse;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register()
+    {
+        $this->app->singleton(AuthResponseContract::class, AuthResponse::class);
+    }
+}
+```

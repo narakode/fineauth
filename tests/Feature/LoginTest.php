@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Testing\Fluent\AssertableJson;
+use Narakode\FineAuth\Auth\AuthResponse;
+use Narakode\FineAuth\Auth\AuthResult;
 use Symfony\Component\HttpFoundation\Cookie;
 use Workbench\App\Models\User;
 
@@ -142,5 +144,32 @@ describe('when login attempt success', function () {
         $this->assertEquals($refreshTokenCookie->getPath(), '/');
         $this->assertNull($refreshTokenCookie->getDomain());
         $this->assertEquals($refreshTokenCookie->getSameSite(), Cookie::SAMESITE_STRICT);
+    });
+
+    test('custom auth response', function () {
+        class CustomAuthResponse implements AuthResponse
+        {
+            public function toArray(AuthResult $auth): array
+            {
+                return [
+                    'test' => 'test'
+                ];
+            }
+        } 
+
+        $this->app->singleton(AuthResponse::class, CustomAuthResponse::class);
+
+        $credentials = [
+            'email' => 'test@example.com',
+            'password' => 'dcG&494hj.6k'
+        ];
+
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', $credentials);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'test' => 'test'
+            ]);
     });
 });
