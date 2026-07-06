@@ -3,10 +3,12 @@
 namespace Narakode\FineAuth;
 
 use Illuminate\Support\ServiceProvider;
+use Narakode\FineAuth\Auth\AuthCredentials;
 use Narakode\FineAuth\Auth\Authenticator;
 use Narakode\FineAuth\Auth\AuthResponse;
 use Narakode\FineAuth\Auth\Default\AuthResponse as DefaultAuthResponse;
 use Narakode\FineAuth\Auth\Default\Authenticator as DefaultAuthenticator;
+use Narakode\FineAuth\Auth\Default\AuthCredentials as DefaultAuthCredentials;
 
 class FineAuthServiceProvider extends ServiceProvider
 {
@@ -23,5 +25,6 @@ class FineAuthServiceProvider extends ServiceProvider
     {
         $this->app->singleton(AuthResponse::class, DefaultAuthResponse::class);
         $this->app->singleton(Authenticator::class, DefaultAuthenticator::class);
+        $this->app->singleton(AuthCredentials::class, DefaultAuthCredentials::class);
     }
 }

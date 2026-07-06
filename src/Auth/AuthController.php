@@ -3,29 +3,19 @@
 namespace Narakode\FineAuth\Auth;
 
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\Password;
 use Narakode\FineAuth\RefreshToken\RefreshToken;
 
 class AuthController
 {
     public function login(
         Request $request,
+        AuthCredentials $authCredentials,
         Authenticator $authenticator,
         AuthService $authService,
         AuthResponse $authResponse
     )
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => [
-                'required',
-                Password::min(8)
-                    ->letters()
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols()
-            ]
-        ]);
+        $credentials = $request->validate($authCredentials->rules());
 
         $user = $authenticator->attempt($credentials);
 

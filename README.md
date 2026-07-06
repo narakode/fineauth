@@ -145,59 +145,56 @@ If the cookie is exists and has not expired, the response is the same as login. 
 
 ## Customization
 
-### Custom Auth Response
+### Custom Credentials
 
-You can customize the auth response (when login and refresh token are successful) by creating a class that implements the `Narakode\FineAuth\Auth\AuthResponse` interface.
+By default, this package uses the `email` and `password` fields as the authentication credentials.
 
-The class should have a `toArray` method with a `Narakode\FineAuth\Auth\AuthResult` object as its parameter.
+You can customize these credentials by creating a class that implements the `Narakode\FineAuth\Auth\AuthCredentials` interface.
 
-The `toArray` method should return an array that will be sent as the JSON response.
+The class should define a `rules` method that returns an array containing the credential fields and their validation rules.
 
-The `AuthResult` object exposes the `getUser` method to access the authenticated `User` object and the `getAccessToken` method to access the user's access token.
-
-For example, create `App\Auth\AuthResponse.php`.
+For example, create `App\Auth\AuthCredentials.php`.
 
 ```php
 <?php
 
 namespace App\Auth;
 
-use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
-use Narakode\FineAuth\Auth\AuthResult;
+use Narakode\FineAuth\Auth\AuthCredentials as AuthCredentialsContract;
 
-class AuthResponse implements AuthResponseContract
+class AuthCredentials implements AuthCredentialsContract
 {
-    public function toArray(AuthResult $auth): array
+    public function rules(): array
     {
         return [
-            'user' => $auth->getUser(),
-            'access_token' => $auth->getAccessToken(),
-            'roles' => [],
-            'permissions' => []
+            'email' => ['required', 'email'],
+            'password' => ['required', 'min:8'],
+            'role' => ['required', 'in:admin,user'],
         ];
     }
 }
 ```
 
-Then, register the `AuthResponse` in the app service provider (`App\Providers\AppServiceProvider.php`).
+Then, register the `AuthCredentials` in your application service provider (`App\Providers\AppServiceProvider.php`).
 
 ```php
 <?php
 
 namespace App\Providers;
 
+use App\Auth\AuthCredentials;
 use Illuminate\Support\ServiceProvider;
-use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
-use App\Auth\AuthResponse;
+use Narakode\FineAuth\Auth\AuthCredentials as AuthCredentialsContract;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->singleton(AuthResponseContract::class, AuthResponse::class);
+        $this->app->singleton(AuthCredentialsContract::class, AuthCredentials::class);
     }
 }
 ```
+
 
 ### Custom Authenticator
 
@@ -255,6 +252,61 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(AuthenticatorContract::class, Authenticator::class);
+    }
+}
+```
+
+
+### Custom Auth Response
+
+You can customize the auth response (when login and refresh token are successful) by creating a class that implements the `Narakode\FineAuth\Auth\AuthResponse` interface.
+
+The class should have a `toArray` method with a `Narakode\FineAuth\Auth\AuthResult` object as its parameter.
+
+The `toArray` method should return an array that will be sent as the JSON response.
+
+The `AuthResult` object exposes the `getUser` method to access the authenticated `User` object and the `getAccessToken` method to access the user's access token.
+
+For example, create `App\Auth\AuthResponse.php`.
+
+```php
+<?php
+
+namespace App\Auth;
+
+use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
+use Narakode\FineAuth\Auth\AuthResult;
+
+class AuthResponse implements AuthResponseContract
+{
+    public function toArray(AuthResult $auth): array
+    {
+        return [
+            'user' => $auth->getUser(),
+            'access_token' => $auth->getAccessToken(),
+            'roles' => [],
+            'permissions' => []
+        ];
+    }
+}
+```
+
+Then, register the `AuthResponse` in the app service provider (`App\Providers\AppServiceProvider.php`).
+
+```php
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
+use App\Auth\AuthResponse;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register()
+    {
+        $this->app->singleton(AuthResponseContract::class, AuthResponse::class);
     }
 }
 ```

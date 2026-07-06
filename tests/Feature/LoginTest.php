@@ -1,20 +1,49 @@
 <?php
 
 use Illuminate\Testing\Fluent\AssertableJson;
+use Narakode\FineAuth\Auth\AuthCredentials;
 use Narakode\FineAuth\Auth\Authenticator;
 use Narakode\FineAuth\Auth\AuthResponse;
 use Narakode\FineAuth\Auth\AuthResult;
 use Symfony\Component\HttpFoundation\Cookie;
 use Workbench\App\Models\User;
 
-test('login returns 422 error when credentials empty', function () {
-    $response = $this->withHeaders(['accept' => 'application/json'])
-        ->post('/login');
+describe('credentials validation', function () {
+    test('login returns 422 error when validation fails', function () {
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login');
 
-    $response->assertStatus(422)
-        ->assertJson(function (AssertableJson $json) {
-            $json->hasAll('message', 'errors.email', 'errors.password');
-        });
+        $response->assertStatus(422)
+            ->assertJson(function (AssertableJson $json) {
+                $json->hasAll('message', 'errors.email', 'errors.password');
+            });
+    });
+
+    test('login returns 422 error when custom validation fails', function () {
+        class CustomAuthCredentials implements AuthCredentials
+        {
+            public function rules(): array
+            {
+                return [
+                    'test' => ['required', 'string', 'min:10']
+                ];
+            }
+        } 
+
+        $this->app->singleton(AuthCredentials::class, CustomAuthCredentials::class);
+
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', [
+                'email' => 'random@email.com',
+                'password' => '3r}!<-F71Gy|'
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJson(function (AssertableJson $json) {
+                $json->hasAll('message', 'errors.test');
+                $json->missing('erorrs.email', 'errors.password');
+            });
+    });
 });
 
 describe('login attempt', function () {
