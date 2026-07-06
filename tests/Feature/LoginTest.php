@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Testing\Fluent\AssertableJson;
+use Narakode\FineAuth\Auth\Authenticator;
 use Narakode\FineAuth\Auth\AuthResponse;
 use Narakode\FineAuth\Auth\AuthResult;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -16,19 +17,68 @@ test('login returns 422 error when credentials empty', function () {
         });
 });
 
-test('login returns 401 error when email not found', function () {
-    $credentials = [
-        'email' => 'random@email.com',
-        'password' => '3r}!<-F71Gy|'
-    ];
+describe('login attempt', function () {
+    test('login returns 401 error when email not found', function () {
+        $credentials = [
+            'email' => 'random@email.com',
+            'password' => '3r}!<-F71Gy|'
+        ];
 
-    $response = $this->withHeaders(['accept' => 'application/json'])
-        ->post('/login', $credentials);
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', $credentials);
 
-    $response->assertStatus(401)
-        ->assertJson([
-            'message' => 'The provided credentials do not match our records.'
-        ]);
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'The provided credentials do not match our records.'
+            ]);
+    });
+
+    test('login returns 401 error when custom attempt returns false', function () {
+        class CustomFailAuthenticator implements Authenticator
+        {
+            public function attempt(array $credentials): User|false
+            {
+                return false;
+            }
+        } 
+
+        $this->app->singleton(Authenticator::class, CustomFailAuthenticator::class);
+        
+        $credentials = [
+            'email' => 'test@example.com',
+            'password' => 'dcG&494hj.6k'
+        ];
+
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', $credentials);
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'The provided credentials do not match our records.'
+            ]);
+    });
+
+    test('login success when custom attempt returns User', function () {
+        class CustomSuccessAuthenticator implements Authenticator
+        {
+            public function attempt(array $credentials): User|false
+            {
+                return User::first();
+            }
+        } 
+
+        $this->app->singleton(Authenticator::class, CustomSuccessAuthenticator::class);
+        
+        $credentials = [
+            'email' => 'random@email.com',
+            'password' => '3r}!<-F71Gy|'
+        ];
+
+        $response = $this->withHeaders(['accept' => 'application/json'])
+            ->post('/login', $credentials);
+
+        $response->assertStatus(200);
+    });
 });
 
 describe('when login attempt success', function () {

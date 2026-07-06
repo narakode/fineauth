@@ -3,13 +3,17 @@
 namespace Narakode\FineAuth\Auth;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Narakode\FineAuth\RefreshToken\RefreshToken;
 
 class AuthController
 {
-    public function login(Request $request, AuthService $authService, AuthResponse $authResponse)
+    public function login(
+        Request $request,
+        Authenticator $authenticator,
+        AuthService $authService,
+        AuthResponse $authResponse
+    )
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -23,9 +27,9 @@ class AuthController
             ]
         ]);
 
-        abort_if(!Auth::attempt($credentials), 401, 'The provided credentials do not match our records.');
+        $user = $authenticator->attempt($credentials);
 
-        $user = Auth::user();
+        abort_if(!$user, 401, 'The provided credentials do not match our records.');
 
         $refreshToken = $user->createRefreshToken();
 

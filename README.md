@@ -143,7 +143,9 @@ The `POST /refresh-token` endpoint returns a new access token and the authentica
 
 If the cookie is exists and has not expired, the response is the same as login. Otherwise, the endpoint returns `401 Unauthorized`.
 
-## Custom Auth Response
+## Customization
+
+### Custom Auth Response
 
 You can customize the auth response (when login and refresh token are successful) by creating a class that implements the `Narakode\FineAuth\Auth\AuthResponse` interface.
 
@@ -153,12 +155,12 @@ The `toArray` method should return an array that will be sent as the JSON respon
 
 The `AuthResult` object exposes the `getUser` method to access the authenticated `User` object and the `getAccessToken` method to access the user's access token.
 
-For example, create `App\Responses\AuthResponse.php`.
+For example, create `App\Auth\AuthResponse.php`.
 
 ```php
 <?php
 
-namespace App\Responses;
+namespace App\Auth;
 
 use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
 use Narakode\FineAuth\Auth\AuthResult;
@@ -186,13 +188,73 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Narakode\FineAuth\Auth\AuthResponse as AuthResponseContract;
-use App\Responses\AuthResponse;
+use App\Auth\AuthResponse;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register()
     {
         $this->app->singleton(AuthResponseContract::class, AuthResponse::class);
+    }
+}
+```
+
+### Custom Authenticator
+
+By default, this package uses `Auth::attempt($credentials)` to determine whether the credentials are valid.
+
+You can customize this behavior by creating a class that implements the `Narakode\FineAuth\Auth\Authenticator` interface.
+
+The class should define an `attempt` method that accepts a `credentials` array as its parameter.
+
+The `attempt` method should return a `User` object when the credentials are valid, or `false` when they are invalid.
+
+For example, create `App\Auth\Authenticator.php`.
+
+```php
+<?php
+
+namespace App\Auth;
+
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Narakode\FineAuth\Auth\Authenticator as AuthenticatorContract;
+
+class Authenticator implements AuthenticatorContract
+{
+    public function attempt(array $credentials): User|false
+    {
+        $user = User::firstWhere('email', $credentials['email']);
+
+        if (!$user) {
+            return false;
+        }
+
+        if (!Hash::check($credentials['password'], $user->password)) {
+            return false;
+        }
+
+        return $user;
+    }
+}
+```
+
+Then, register the `Authenticator` in your application service provider (`App\Providers\AppServiceProvider.php`).
+
+```php
+<?php
+
+namespace App\Providers;
+
+use App\Auth\Authenticator;
+use Illuminate\Support\ServiceProvider;
+use Narakode\FineAuth\Auth\Authenticator as AuthenticatorContract;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register()
+    {
+        $this->app->singleton(AuthenticatorContract::class, Authenticator::class);
     }
 }
 ```
