@@ -47,14 +47,14 @@ class AuthService
         $refreshToken = $user->createRefreshToken();
 
         Cookie::queue(
-            name: 'refresh_token',
-            value: $refreshToken->token,
-            minutes: now()->diffInMinutes($refreshToken->expire_at),
-            path: '/',
-            domain: null,
-            secure: true,
-            httpOnly: true,
-            sameSite: HttpFoundationCookie::SAMESITE_LAX
+            'refresh_token',
+            $refreshToken->token,
+            now()->diffInMinutes($refreshToken->expire_at),
+            '/',
+            null,
+            true,
+            true,
+            HttpFoundationCookie::SAMESITE_LAX
         );
     }
 }
