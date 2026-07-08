@@ -6,12 +6,12 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Cookie;
 use Narakode\FineAuth\Auth\Exceptions\LoginException;
 use Narakode\FineAuth\Auth\Exceptions\RefreshTokenException;
-use Narakode\FineAuth\RefreshToken\RefreshToken;
+use Narakode\FineAuth\RefreshToken\RefreshTokenService;
 use Symfony\Component\HttpFoundation\Cookie as HttpFoundationCookie;
 
 class AuthService
 {
-    public function __construct(private AuthResult $authResult) {}
+    public function __construct() {}
 
     public function login(array $credentials): array
     {
@@ -23,13 +23,12 @@ class AuthService
 
         $this->queueRefreshToken($user);
 
-        return $this->authResult->generateAuthResult($user);
+        return app(AuthResult::class)->generateAuthResult($user);
     }
 
     public function refreshToken(string $rawToken): array
     {
-        $refreshToken = RefreshToken::with('user')
-            ->firstWhere('token', $rawToken);
+        $refreshToken = app(RefreshTokenService::class)->findByToken($rawToken);
 
         if (!$refreshToken) {
             throw new RefreshTokenException;
@@ -39,7 +38,7 @@ class AuthService
             throw new RefreshTokenException;
         }
 
-        return $this->authResult->generateAuthResult($refreshToken->user);
+        return app(AuthResult::class)->generateAuthResult($refreshToken->user);
     }
 
     private function queueRefreshToken(User $user): void
