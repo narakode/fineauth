@@ -3,10 +3,10 @@
 use Laravel\Sanctum\NewAccessToken;
 use Laravel\Sanctum\PersonalAccessToken;
 use Mockery\MockInterface;
+use Narakode\FineAuth\Auth\AuthContext;
+use Narakode\FineAuth\Auth\AuthMeta;
 use Narakode\FineAuth\Auth\AuthResult;
 use Workbench\App\Models\User;
-
-pest()->only();
 
 describe('generateAuthResult', function () {
     test('returns user access token', function () {
@@ -44,5 +44,32 @@ describe('generateAuthResult', function () {
         $result = $authResult->generateAuthResult($user);
 
         $this->assertSame('test', $result['test']); 
+    });
+});
+
+describe('generateCurrentUserResult', function () {
+    test('returns user', function () {
+        $user = new User;
+        $result = (new AuthResult)->generateCurrentUserResult($user);
+
+        $this->assertSame($user, $result['user']); 
+    });
+
+    test('returns meta', function () {
+        $user = new User;
+
+        $meta = [
+            'test' => 'test'
+        ];
+        $this->partialMock(AuthMeta::class, function (MockInterface $mock) use ($meta) {
+            $mock->shouldReceive('toArray')
+                ->once()
+                ->with(Mockery::type(AuthContext::class))
+                ->andReturn($meta);
+        });
+
+        $result = (new AuthResult)->generateCurrentUserResult($user);
+
+        $this->assertSame($meta, $result['meta']); 
     });
 });
