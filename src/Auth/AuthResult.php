@@ -8,7 +8,7 @@ class AuthResult
 {
     public function generateAuthResult(User $user): array
     {
-        $accessToken = $this->createAccessToken($user);
+        $accessToken = $user->createToken('api')->plainTextToken;
 
         return [
             'access_token' => $accessToken,
@@ -22,10 +22,5 @@ class AuthResult
             'user' => $user,
             'meta' => app(AuthMeta::class)->toArray(new AuthContext($user))
         ];
-    }
-
-    private function createAccessToken(User $user): string
-    {
-        return $user->createToken('api')->plainTextToken;
     }
 }
