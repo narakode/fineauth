@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Cookie;
 use Mockery\MockInterface;
 use Narakode\FineAuth\Auth\Authenticator;
 use Narakode\FineAuth\Auth\AuthResult;
@@ -9,7 +8,6 @@ use Narakode\FineAuth\Auth\Exceptions\LoginException;
 use Narakode\FineAuth\Auth\Exceptions\RefreshTokenException;
 use Narakode\FineAuth\RefreshToken\RefreshTokenService;
 use Narakode\FineAuth\RefreshToken\RefreshToken;
-use Symfony\Component\HttpFoundation\Cookie as HttpFoundationCookie;
 use Workbench\App\Models\User;
 
 describe('login', function () {
@@ -18,6 +16,7 @@ describe('login', function () {
 
         $this->partialMock(Authenticator::class, function (MockInterface $mock) use ($credentials) {
             $mock->shouldReceive('attempt')
+                ->once()
                 ->with($credentials)
                 ->andReturnFalse(); 
         });
@@ -42,18 +41,11 @@ describe('login', function () {
                     ->andReturn($user); 
             });
 
-            Cookie::expects('queue')
-                ->once()
-                ->with(
-                    'refresh_token',
-                    $refreshToken->token,
-                    now()->diffInMinutes($refreshToken->expire_at),
-                    '/',
-                    null,
-                    true,
-                    true,
-                    HttpFoundationCookie::SAMESITE_LAX
-                );
+            $this->partialMock(RefreshTokenService::class, function (MockInterface $mock) use ($user) {
+                $mock->shouldReceive('queueRefreshToken')
+                    ->once()
+                    ->with($user); 
+            });
 
             $this->mock(AuthResult::class, function (MockInterface $mock) {
                 $mock->shouldReceive('generateAuthResult');

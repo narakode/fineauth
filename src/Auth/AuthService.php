@@ -2,12 +2,9 @@
 
 namespace Narakode\FineAuth\Auth;
 
-use Illuminate\Foundation\Auth\User;
-use Illuminate\Support\Facades\Cookie;
 use Narakode\FineAuth\Auth\Exceptions\LoginException;
 use Narakode\FineAuth\Auth\Exceptions\RefreshTokenException;
 use Narakode\FineAuth\RefreshToken\RefreshTokenService;
-use Symfony\Component\HttpFoundation\Cookie as HttpFoundationCookie;
 
 class AuthService
 {
@@ -21,7 +18,7 @@ class AuthService
             throw new LoginException('The provided credentials do not match our records.');
         }
 
-        $this->queueRefreshToken($user);
+        app(RefreshTokenService::class)->queueRefreshToken($user);
 
         return app(AuthResult::class)->generateAuthResult($user);
     }
@@ -39,21 +36,5 @@ class AuthService
         }
 
         return app(AuthResult::class)->generateAuthResult($refreshToken->user);
-    }
-
-    private function queueRefreshToken(User $user): void
-    {
-        $refreshToken = $user->createRefreshToken();
-
-        Cookie::queue(
-            'refresh_token',
-            $refreshToken->token,
-            now()->diffInMinutes($refreshToken->expire_at),
-            '/',
-            null,
-            true,
-            true,
-            HttpFoundationCookie::SAMESITE_LAX
-        );
     }
 }
