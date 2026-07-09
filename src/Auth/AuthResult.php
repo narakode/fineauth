@@ -8,7 +8,7 @@ class AuthResult
 {
     public function generateAuthResult(User $user): array
     {
-        $accessToken = $user->createToken('api', ['*'], now()->addMinutes(config('access_token_expiration')))->plainTextToken;
+        $accessToken = $user->createToken('api', ['*'], now()->addMinutes(config('fineauth.access_token_expiration')))->plainTextToken;
 
         return [
             'access_token' => $accessToken,

@@ -57,11 +57,15 @@ describe('storeRefreshToken', function () {
 
     test('has expire at', function () {
         $this->freezeTime(function () {
+            $expireInMinutes = 60 * 24;
+
+            config()->set('fineauth.refresh_token_expiration', $expireInMinutes);
+
             $user = User::first();
 
             $refreshToken = (new RefreshTokenService)->storeRefreshToken($user);
 
-            $this->assertEquals(now()->addHour()->copy()->startOfSecond(), $refreshToken->expire_at);
+            $this->assertEquals(now()->addMinutes($expireInMinutes)->copy()->startOfSecond(), $refreshToken->expire_at);
         });
     });
 });

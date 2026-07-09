@@ -147,7 +147,7 @@ describe('when login attempt success', function () {
 
     test('access token has expiration from config', function () {
         $this->freezeTime(function () {
-            config()->set('access_token_expiration', 60);
+            config()->set('fineauth.access_token_expiration', 60);
 
             $credentials = [
                 'email' => 'test@example.com',
@@ -167,7 +167,7 @@ describe('when login attempt success', function () {
                 ->first();
 
             $this->assertNotNull($token->expires_at);
-            $this->assertEquals($token->expires_at, now()->addMinutes(config('access_token_expiration'))->copy()->startOfSecond());
+            $this->assertEquals($token->expires_at, now()->addMinutes(config('fineauth.access_token_expiration'))->copy()->startOfSecond());
         });
     });
 
@@ -205,6 +205,10 @@ describe('when login attempt success', function () {
 
     test('refresh token has expiration', function () {
         $this->freezeTime(function () {
+            $expireInMinutes = 60 * 24;
+
+            config()->set('fineauth.refresh_token_expiration', $expireInMinutes);
+
             $credentials = [
                 'email' => 'test@example.com',
                 'password' => 'dcG&494hj.6k'
@@ -216,7 +220,7 @@ describe('when login attempt success', function () {
                 ->post('/login', $credentials)
                 ->assertStatus(200);
 
-            $refreshTokenExpire = now()->addHour();
+            $refreshTokenExpire = now()->addMinutes($expireInMinutes);
             $refreshToken = $user->refreshTokens()->first();
 
             $this->assertEquals($refreshToken->expire_at->copy()->startOfSecond(), $refreshTokenExpire->copy()->startOfSecond());

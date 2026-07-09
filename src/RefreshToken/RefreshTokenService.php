@@ -37,7 +37,7 @@ class RefreshTokenService
     
         $refreshToken = Str::random();
 
-        $expireAt = now()->addHour();
+        $expireAt = now()->addMinutes(config('fineauth.refresh_token_expiration'));
 
         return $user->refreshTokens()->create([
             'token' => $refreshToken,

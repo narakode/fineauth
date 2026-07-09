@@ -26,5 +26,7 @@ class FineAuthServiceProvider extends ServiceProvider
         $this->app->singleton(AuthMeta::class, DefaultAuthMeta::class);
         $this->app->singleton(Authenticator::class, DefaultAuthenticator::class);
         $this->app->singleton(AuthCredentials::class, DefaultAuthCredentials::class);
+
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'fineauth');
     }
 }

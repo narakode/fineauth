@@ -11,7 +11,7 @@ use Workbench\App\Models\User;
 describe('generateAuthResult', function () {
     test('returns user access token', function () {
         $this->freezeTime(function () {
-            config()->set('access_token_expiration', 60);
+            config()->set('fineauth.access_token_expiration', 60);
 
             $token = 'test';
             
@@ -23,7 +23,7 @@ describe('generateAuthResult', function () {
                             return false;
                         }
 
-                        if (!now()->addMinutes(config('access_token_expiration'))->isSameSecond($expiration)) {
+                        if (!now()->addMinutes(config('fineauth.access_token_expiration'))->isSameSecond($expiration)) {
                             return false;
                         }
 
