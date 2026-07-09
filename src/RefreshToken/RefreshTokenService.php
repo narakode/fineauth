@@ -4,6 +4,7 @@ namespace Narakode\FineAuth\RefreshToken;
 
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Cookie as HttpFoundationCookie;
 
 class RefreshTokenService
@@ -28,5 +29,19 @@ class RefreshTokenService
             true,
             HttpFoundationCookie::SAMESITE_LAX
         );
+    }
+
+    public function storeRefreshToken(User $user): RefreshToken
+    {
+        $user->refreshTokens()->delete();
+    
+        $refreshToken = Str::random();
+
+        $expireAt = now()->addHour();
+
+        return $user->refreshTokens()->create([
+            'token' => $refreshToken,
+            'expire_at' => $expireAt
+        ]);
     }
 }

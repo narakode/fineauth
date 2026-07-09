@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 use Mockery\MockInterface;
 use Narakode\FineAuth\RefreshToken\RefreshToken;
 use Narakode\FineAuth\RefreshToken\RefreshTokenService;
@@ -34,6 +35,33 @@ describe('queueRefreshToken', function () {
                 );
 
             (new RefreshTokenService)->queueRefreshToken($user);
+        });
+    });
+});
+
+describe('storeRefreshToken', function () {
+    test('removes previous refresh tokens', function () {
+        $user = User::first();
+
+        $refreshToken = $user->refreshTokens()->create([
+            'token' => Str::random(),
+            'expire_at' => now()->addHour()
+        ]);
+
+        (new RefreshTokenService)->storeRefreshToken($user);
+
+        $this->assertDatabaseMissing('refresh_tokens', [
+            'id' => $refreshToken->id
+        ]);
+    });
+
+    test('has expire at', function () {
+        $this->freezeTime(function () {
+            $user = User::first();
+
+            $refreshToken = (new RefreshTokenService)->storeRefreshToken($user);
+
+            $this->assertEquals(now()->addHour()->copy()->startOfSecond(), $refreshToken->expire_at);
         });
     });
 });

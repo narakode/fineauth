@@ -2,8 +2,6 @@
 
 namespace Narakode\FineAuth\RefreshToken;
 
-use Illuminate\Support\Str;
-
 trait HasRefreshTokens
 {
     public function refreshTokens()
@@ -11,17 +9,8 @@ trait HasRefreshTokens
         return $this->hasMany(RefreshToken::class);
     }
 
-    public function createRefreshToken()
+    public function createRefreshToken(): RefreshToken
     {
-        $refreshToken = Str::random();
-
-        $expireAt = now()->addHour();
-
-        $this->refreshTokens()->delete();
-        
-        return $this->refreshTokens()->create([
-            'token' => $refreshToken,
-            'expire_at' => $expireAt
-        ]);
+        return app(RefreshTokenService::class)->storeRefreshToken($this);
     }
 }
