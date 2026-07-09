@@ -10,18 +10,32 @@ use Workbench\App\Models\User;
 
 describe('generateAuthResult', function () {
     test('returns user access token', function () {
-        $token = 'test';
-        
-        $user = $this->partialMock(User::class, function (MockInterface $mock) use ($token) {
-            $mock->shouldReceive('createToken')
-                ->once()
-                ->with('api')
-                ->andReturn(new NewAccessToken(new PersonalAccessToken(), $token));
+        $this->freezeTime(function () {
+            config()->set('access_token_expiration', 60);
+
+            $token = 'test';
+            
+            $user = $this->partialMock(User::class, function (MockInterface $mock) use ($token) {
+                $mock->shouldReceive('createToken')
+                    ->once()
+                    ->withArgs(function ($type, $abilities, $expiration) {
+                        if ($type !== 'api') {
+                            return false;
+                        }
+
+                        if (!now()->addMinutes(config('access_token_expiration'))->isSameSecond($expiration)) {
+                            return false;
+                        }
+
+                        return true;
+                    })
+                    ->andReturn(new NewAccessToken(new PersonalAccessToken(), $token));
+            });
+
+            $result = (new AuthResult)->generateAuthResult($user);
+
+            $this->assertSame($token, $result['access_token']); 
         });
-
-        $result = (new AuthResult)->generateAuthResult($user);
-
-        $this->assertSame($token, $result['access_token']); 
     });
     
     test('returns current result', function () {
@@ -30,7 +44,7 @@ describe('generateAuthResult', function () {
         $user = $this->partialMock(User::class, function (MockInterface $mock) use ($token) {
             $mock->shouldReceive('createToken')
                 ->once()
-                ->with('api')
+                ->withAnyArgs()
                 ->andReturn(new NewAccessToken(new PersonalAccessToken(), $token));
         });
 

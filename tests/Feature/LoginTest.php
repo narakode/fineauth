@@ -41,7 +41,8 @@ describe('credentials validation', function () {
         $response->assertStatus(422)
             ->assertJson(function (AssertableJson $json) {
                 $json->hasAll('message', 'errors.test');
-                $json->missing('erorrs.email', 'errors.password');
+                $json->missing('erorrs.email');
+                $json->missing('errors.password');
             });
     });
 });
@@ -142,6 +143,32 @@ describe('when login attempt success', function () {
                 'user' => $user->toArray()
             ])
             ->assertJsonMissingPaths(['user.password']);
+    });
+
+    test('access token has expiration from config', function () {
+        $this->freezeTime(function () {
+            config()->set('access_token_expiration', 60);
+
+            $credentials = [
+                'email' => 'test@example.com',
+                'password' => 'dcG&494hj.6k'
+            ];
+
+            $response = $this->withHeaders(['accept' => 'application/json'])
+                ->post('/login', $credentials)
+                ->assertStatus(200);
+
+            $data = $response->json();
+
+            $userId = $data['user']['id'];
+
+            $token = User::find($userId)
+                ->tokens()
+                ->first();
+
+            $this->assertNotNull($token->expires_at);
+            $this->assertEquals($token->expires_at, now()->addMinutes(config('access_token_expiration'))->copy()->startOfSecond());
+        });
     });
 
     test('creates refresh token', function () {
