@@ -17,7 +17,11 @@ class FineAuthServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishesMigrations([
                 __DIR__ . '/../database/migrations/create_refresh_tokens_table.php' => database_path('migrations/' . date('Y_m_d_His') . '_create_refresh_tokens_table.php')
-            ]);
+            ], 'migrations');
+
+            $this->publishes([
+                __DIR__.'/../config/config.php' => config_path('fineauth.php'),
+            ], 'config');
         }
     }
 
