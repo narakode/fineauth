@@ -104,7 +104,8 @@ If authentication succeeds, it returns a **200 OK** response:
         "id": "xxx",
         "name": "xxx",
         "email": "xxx"
-    }
+    },
+    "meta": {}
 }
 ```
 
@@ -133,7 +134,8 @@ If the access token is valid, the response will be:
         "id": "xxx",
         "name": "xxx",
         "email": "xxx"
-    }
+    },
+    "meta": {}
 }
 ```
 
