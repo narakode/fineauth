@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Cookie;
 use Workbench\App\Models\User;
 
 describe('credentials validation', function () {
-    test('login returns 422 error when validation fails', function () {
+    test('returns 422 error when validation fails', function () {
         $response = $this->withHeaders(['accept' => 'application/json'])
             ->post('/login');
 
@@ -19,7 +19,7 @@ describe('credentials validation', function () {
             });
     });
 
-    test('login returns 422 error when custom validation fails', function () {
+    test('returns 422 error when custom validation fails', function () {
         class CustomAuthCredentials implements AuthCredentials
         {
             public function rules(): array
@@ -48,7 +48,7 @@ describe('credentials validation', function () {
 });
 
 describe('login attempt', function () {
-    test('login returns 401 error when email not found', function () {
+    test('returns 401 error when email not found', function () {
         $credentials = [
             'email' => 'random@email.com',
             'password' => '3r}!<-F71Gy|'
@@ -63,7 +63,7 @@ describe('login attempt', function () {
             ]);
     });
 
-    test('login returns 401 error when custom attempt returns false', function () {
+    test('returns 401 error when custom attempt returns false', function () {
         class CustomFailAuthenticator implements Authenticator
         {
             public function attempt(array $credentials): User|false
@@ -111,7 +111,7 @@ describe('login attempt', function () {
     });
 });
 
-describe('when login attempt success', function () {
+describe('login result', function () {
     test('returns access token', function () {
         $credentials = [
             'email' => 'test@example.com',
@@ -143,6 +143,25 @@ describe('when login attempt success', function () {
                 'user' => $user->toArray()
             ])
             ->assertJsonMissingPaths(['user.password']);
+    });
+
+    test('returns expires at', function () {
+        $this->freezeTime(function () {
+            config()->set('fineauth.access_token_expiration', 15);
+
+            $credentials = [
+                'email' => 'test@example.com',
+                'password' => 'dcG&494hj.6k'
+            ];
+
+            $response = $this->withHeaders(['accept' => 'application/json'])
+                ->post('/login', $credentials);
+
+            $response->assertStatus(200)
+                ->assertJson([
+                    'expires_at' => now()->addMinutes(15)->toISOString()
+                ]);
+        });
     });
 
     test('access token has expiration from config', function () {

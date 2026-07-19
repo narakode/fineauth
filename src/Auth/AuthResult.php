@@ -8,10 +8,12 @@ class AuthResult
 {
     public function generateAuthResult(User $user): array
     {
-        $accessToken = $user->createToken('api', ['*'], now()->addMinutes(config('fineauth.access_token_expiration')))->plainTextToken;
+        $expiresAt = now()->addMinutes(config('fineauth.access_token_expiration'));
+        $accessToken = $user->createToken('api', ['*'], $expiresAt)->plainTextToken;
 
         return [
             'access_token' => $accessToken,
+            'expires_at' => $expiresAt,
             ...$this->generateCurrentUserResult($user)
         ];
     }

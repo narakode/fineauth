@@ -105,7 +105,8 @@ If authentication succeeds, it returns a **200 OK** response:
         "name": "xxx",
         "email": "xxx"
     },
-    "meta": {}
+    "meta": {},
+    "expires_at": "xxx"
 }
 ```
 
@@ -312,4 +313,19 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(AuthMetaContract::class, AuthMeta::class);
     }
 }
+```
+
+### Custom Expiration
+
+By default, the access token expires after 15 minutes, and the refresh token expires after 2 months.
+
+To customize these values, edit the `config/fineauth.php` file. The expiration values are specified in minutes.
+
+```php
+<?php
+
+return [
+    'access_token_expiration' => 15,
+    'refresh_token_expiration' => 86400,
+];
 ```
