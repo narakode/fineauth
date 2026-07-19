@@ -9,7 +9,7 @@ use Narakode\FineAuth\Auth\AuthResult;
 use Workbench\App\Models\User;
 
 describe('generateAuthResult', function () {
-    test('returns user access token', function () {
+    test('returns access token', function () {
         $this->freezeTime(function () {
             config()->set('fineauth.access_token_expiration', 60);
 
@@ -38,7 +38,7 @@ describe('generateAuthResult', function () {
         });
     });
     
-    test('returns current result', function () {
+    test('returns current user result', function () {
         $token = 'test';
         
         $user = $this->partialMock(User::class, function (MockInterface $mock) use ($token) {
@@ -58,6 +58,32 @@ describe('generateAuthResult', function () {
         $result = $authResult->generateAuthResult($user);
 
         $this->assertSame('test', $result['test']); 
+    });
+    
+    test('returns expires at result', function () {
+        $this->freezeTime(function () {
+            $token = 'test';
+
+            config()->set('fineauth.access_token_expiration', 15);
+            
+            $user = $this->partialMock(User::class, function (MockInterface $mock) use ($token) {
+                $mock->shouldReceive('createToken')
+                    ->once()
+                    ->withAnyArgs()
+                    ->andReturn(new NewAccessToken(new PersonalAccessToken(), $token));
+            });
+
+            $authResult = $this->partialMock(AuthResult::class, function (MockInterface $mock) use ($user) {
+                $mock->shouldReceive('generateCurrentUserResult')
+                    ->once()
+                    ->with($user)
+                    ->andReturn(['test' => 'test']);
+            });
+
+            $result = $authResult->generateAuthResult($user);
+
+            $this->assertEquals(now()->addMinutes(15), $result['expires_at']); 
+        });
     });
 });
 

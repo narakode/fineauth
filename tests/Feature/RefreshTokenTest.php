@@ -61,6 +61,7 @@ describe('when refresh token valid', function () {
             ->assertJson(function (AssertableJson $json) {
                 $json->has('access_token')
                     ->has('user')
+                    ->has('expires_at')
                     ->etc();
             });
     });  
