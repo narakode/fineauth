@@ -24,7 +24,7 @@ class RefreshTokenService
             $refreshToken->token,
             now()->diffInMinutes($refreshToken->expire_at),
             '/',
-            null,
+            config('fineauth.refresh_token_domain'),
             true,
             true,
             HttpFoundationCookie::SAMESITE_LAX
