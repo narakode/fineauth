@@ -253,26 +253,48 @@ describe('login result', function () {
         });
     });
 
-    test('refresh token cookie has secure configuration', function () {
-        $credentials = [
-            'email' => 'test@example.com',
-            'password' => 'dcG&494hj.6k'
-        ];
+    describe('refresh token cookie configuration', function () {
+        test('has secure configuration', function () {
+            $credentials = [
+                'email' => 'test@example.com',
+                'password' => 'dcG&494hj.6k'
+            ];
 
-        $response = $this->withHeaders(['accept' => 'application/json'])
-            ->post('/login', $credentials)
-            ->assertStatus(200);
+            $response = $this->withHeaders(['accept' => 'application/json'])
+                ->post('/login', $credentials)
+                ->assertStatus(200);
 
-        $refreshTokenCookie = collect($response->headers->getCookies())
-            ->first(function ($cookie) {
-                return $cookie->getName() === 'refresh_token';
-            });
+            $refreshTokenCookie = collect($response->headers->getCookies())
+                ->first(function ($cookie) {
+                    return $cookie->getName() === 'refresh_token';
+                });
 
-        $this->assertTrue($refreshTokenCookie->isSecure());
-        $this->assertTrue($refreshTokenCookie->isHttpOnly());
-        $this->assertEquals($refreshTokenCookie->getPath(), '/');
-        $this->assertNull($refreshTokenCookie->getDomain());
-        $this->assertEquals($refreshTokenCookie->getSameSite(), Cookie::SAMESITE_LAX);
+            $this->assertTrue($refreshTokenCookie->isSecure());
+            $this->assertTrue($refreshTokenCookie->isHttpOnly());
+            $this->assertEquals($refreshTokenCookie->getPath(), '/');
+            $this->assertNull($refreshTokenCookie->getDomain());
+            $this->assertEquals($refreshTokenCookie->getSameSite(), Cookie::SAMESITE_LAX);
+        });
+
+        test('has domain configuration by config', function () {
+            config()->set('fineauth.refresh_token_domain', '.example.com');
+
+            $credentials = [
+                'email' => 'test@example.com',
+                'password' => 'dcG&494hj.6k'
+            ];
+
+            $response = $this->withHeaders(['accept' => 'application/json'])
+                ->post('/login', $credentials)
+                ->assertStatus(200);
+
+            $refreshTokenCookie = collect($response->headers->getCookies())
+                ->first(function ($cookie) {
+                    return $cookie->getName() === 'refresh_token';
+                });
+
+            $this->assertEquals($refreshTokenCookie->getDomain(), '.example.com');
+        });
     });
 
     test('has custom meta properties', function () {

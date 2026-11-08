@@ -329,3 +329,18 @@ return [
     'refresh_token_expiration' => 86400,
 ];
 ```
+
+### Configure The Refresh Token Cookie Domain
+
+By default, the refresh token cookie is only sent to the same domain.
+
+To use a custom domain, update the `refresh_token_domain` value in the `config/fineauth.php` file.
+
+```php
+<?php
+
+return [
+    //
+    'refresh_token_domain' => '.exmaple.com'
+];
+```
