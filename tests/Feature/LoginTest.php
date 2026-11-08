@@ -276,7 +276,7 @@ describe('login result', function () {
             $this->assertEquals($refreshTokenCookie->getSameSite(), Cookie::SAMESITE_LAX);
         });
 
-        test('has domain configuration by config', function () {
+        test('has refresh token domain by config', function () {
             config()->set('fineauth.refresh_token_domain', '.example.com');
 
             $credentials = [
@@ -294,6 +294,26 @@ describe('login result', function () {
                 });
 
             $this->assertEquals($refreshTokenCookie->getDomain(), '.example.com');
+        });
+
+        test('has refresh token secure by config', function () {
+            config()->set('fineauth.refresh_token_secure', false);
+
+            $credentials = [
+                'email' => 'test@example.com',
+                'password' => 'dcG&494hj.6k'
+            ];
+
+            $response = $this->withHeaders(['accept' => 'application/json'])
+                ->post('/login', $credentials)
+                ->assertStatus(200);
+
+            $refreshTokenCookie = collect($response->headers->getCookies())
+                ->first(function ($cookie) {
+                    return $cookie->getName() === 'refresh_token';
+                });
+
+            $this->assertfalse($refreshTokenCookie->isSecure());
         });
     });
 
