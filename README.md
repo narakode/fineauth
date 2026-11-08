@@ -344,3 +344,18 @@ return [
     'refresh_token_domain' => '.exmaple.com'
 ];
 ```
+
+### Configure The Refresh Token Cookie's Secure
+
+By default, the refresh token cookie is marked as secure.
+
+To disable it, update the `refresh_token_secure` value to `false` in the `config/fineauth.php` file.
+
+```php
+<?php
+
+return [
+    //
+    'refresh_token_secure' => false
+];
+```

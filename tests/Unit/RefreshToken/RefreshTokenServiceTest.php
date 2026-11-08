@@ -67,6 +67,36 @@ describe('queueRefreshToken', function () {
             (new RefreshTokenService)->queueRefreshToken($user);
         });
     });
+    test('set secure by config secure', function () {
+        $this->freezeTime(function () {
+            config()->set('fineauth.refresh_token_secure', false);
+
+            $refreshToken = new RefreshToken;
+
+            $refreshToken->expire_at = now()->addHour();
+
+            $user = $this->partialMock(User::class, function (MockInterface $mock) use ($refreshToken) {
+                $mock->shouldReceive('createRefreshToken')
+                    ->once()
+                    ->andReturn($refreshToken); 
+            });
+
+            Cookie::expects('queue')
+                ->once()
+                ->with(
+                    'refresh_token',
+                    $refreshToken->token,
+                    now()->diffInMinutes($refreshToken->expire_at),
+                    '/',
+                    null,
+                    false,
+                    true,
+                    HttpFoundationCookie::SAMESITE_LAX
+                );
+
+            (new RefreshTokenService)->queueRefreshToken($user);
+        });
+    });
 });
 
 describe('storeRefreshToken', function () {
